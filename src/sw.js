@@ -28,13 +28,13 @@
 self.addEventListener('install', (e) => {
     e.waitUntil(
         caches.open('fox-store').then((cache) => cache.addAll([
-        '/',
-        '/index.html',
-        '/index.js',
-        '/css/index.css',
-        '/favicon.ico',
-        '/pwa.webmanifest',
-        '/sw.js'
+        '/pwa-example/src/',
+        '/pwa-example/src/index.html',
+        '/pwa-example/src/index.js',
+        '/pwa-example/src/css/index.css',
+        '/pwa-example/src/favicon.ico',
+        '/pwa-example/src/pwa.webmanifest',
+        '/pwa-example/src/sw.js'
         ])),
     );
 });

@@ -9,7 +9,7 @@ if ('serviceWorker' in navigator && 'PushManager' in window) {
     var publicKey = 'BOEQSjdhorIf8M0XFNlwohK3sTzO9iJwvbYU-fuXRF0tvRpPPMGO6d_gJC_pUQwBT7wD8rKutpNTFHOHN3VqJ0A';
     // 注册 sw
     navigator.serviceWorker
-        .register('/sw.js')
+        .register('/pwa-example/src/sw.js')
         .then((registration) => {
             notifications.innerHTML = 'Service Worker 注册成功'
             console.log('Service Worker Registered'); 
