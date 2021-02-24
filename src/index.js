@@ -9,7 +9,7 @@ if ('serviceWorker' in navigator && 'PushManager' in window) {
     var publicKey = 'BOEQSjdhorIf8M0XFNlwohK3sTzO9iJwvbYU-fuXRF0tvRpPPMGO6d_gJC_pUQwBT7wD8rKutpNTFHOHN3VqJ0A';
     // 注册 sw
     navigator.serviceWorker
-        .register('/pwa-example/src/sw.js')
+        .register('./sw.js')
         .then((registration) => {
             notifications.innerHTML = 'Service Worker 注册成功'
             console.log('Service Worker Registered'); 
@@ -61,7 +61,7 @@ noticeBtn.onclick = function() {
     });
 }
 
-// Code to handle install prompt on desktop
+// 安装WEB应用程序之前需要做的操作
 window.addEventListener('beforeinstallprompt', (e) => {
     // Prevent Chrome 67 and earlier from automatically showing the prompt
     e.preventDefault();
@@ -84,5 +84,23 @@ window.addEventListener('beforeinstallprompt', (e) => {
             }
             deferredPrompt = null;
         });
+    });
+});
+
+// 设备离线时需要做的事情
+window.addEventListener('offline', e => {
+    Notification.requestPermission().then(result => {
+        new Notification('信息提示', {
+            body: '您已离线，已进入离线操作模式。'
+        })
+    })
+});
+
+// 设备上线后需要做的事情
+window.addEventListener('online', e => {
+    Notification.requestPermission().then(result => {
+        new Notification('信息提示', {
+            body: '您已上线，正在为您同步数据，请稍后...'
+        })
     });
 });

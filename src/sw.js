@@ -25,38 +25,63 @@
 //     );
 // });
 
-self.addEventListener('install', (e) => {
+
+self.addEventListener('install', handleAddEventListenerInstall);        // 安装
+self.addEventListener('fetch', handleAddEventListenerFetch);            // 请求
+self.addEventListener('push', handleAddEventListenerPush);              // 监听服务器推送的消息
+self.addEventListener('notificationclick', handleNotificationClick);    // 监听推送消息对话框点击事件
+self.onmessage = handleOnMessage;                                       // 消息通知
+
+// 安装
+function handleAddEventListenerInstall(e) {
+    console.log('[Service Worker] Install');
     e.waitUntil(
         caches.open('fox-store').then((cache) => cache.addAll([
-        '/pwa-example/src/',
-        '/pwa-example/src/index.html',
-        '/pwa-example/src/index.js',
-        '/pwa-example/src/css/index.css',
-        '/pwa-example/src/favicon.ico',
-        '/pwa-example/src/pwa.webmanifest',
-        '/pwa-example/src/sw.js'
+        './index.html',
+        './index.js',
+        './css/index.css',
+        './favicon.ico',
+        './sw.js'
         ])),
     );
-});
-
-self.addEventListener('fetch', (e) => {
-    console.log(e.request.url);
+}
+// 监听请求事件
+function handleAddEventListenerFetch(e) {
+    console.log(
+        `[Service Worker] Fetch: request.url==> ${e.request.url}`
+    );
     e.respondWith(
         caches.match(e.request).then((response) => response || fetch(e.request)),
     );
-});
-
-self.onmessage = function(e) {
-    console.log(['sw:onmessage', e])
 }
-
-self.addEventListener('push', (e) => {
+/**
+ * 服务器推送信息
+ * @param {*} e 
+ */
+function handleAddEventListenerPush(e) {
+    console.log('[Service Worker] Push');
     let data;
-    if (data) {
+    if (e.data) {
         data = e.data.json();
-        console.log(`push 的数据是：${data}`);
-        self.registration.showNotification(data.text)
+        console.log(`push 的数据是：${JSON.stringify(data)}`);
+        self.registration.showNotification(e.data.text())
     } else {
         console.log('没有推送任何消息。')
     }
-})
+}
+/**
+ * 消息通知
+ * @param {*} e 
+ */
+function handleOnMessage(e) {
+    console.log('[Service Worker] Install');
+    console.log(['[Service Worker]:onmessage', e])
+}
+/**
+ * 消息推送对话框点击事件
+ * @param {*} e 
+ */
+function handleNotificationClick(e) {
+    // 
+    console.log('[Service Worker] Notificationclick');
+}
