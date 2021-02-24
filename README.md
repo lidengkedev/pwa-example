@@ -5,4 +5,4 @@
 
 查看演示：
 
-<video controls width="100%" height="300px" autoplay loop src="https://lidengkedev.github.io/pwa-example/video/20210224_102642.mp4">您的浏览器不支持HTML视频功能</video>
+<video controls width="100%" height="300px" loop src="https://lidengkedev.github.io/pwa-example/video/20210224_102642.mp4">您的浏览器不支持HTML视频功能</video>

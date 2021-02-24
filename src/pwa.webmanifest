@@ -4,12 +4,12 @@
     "display": "fullscreen",
     "icons": [
         {
-            "src": "icons/icon-192.png",
-            "sizes": "192x192",
+            "src": "icons/fox-icon.png",
+            "sizes": "114x114",
             "type": "image/png"
         }
     ],
-    "name": "Progressive web apps",
+    "name": "渐进式WEB应用程序",
     "short_name": "PWA",
     "theme_color": "#52ccba",
     "start_url": "/pwa-example/src/index.html",
