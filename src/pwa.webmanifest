@@ -12,7 +12,7 @@
     "name": "Progressive web apps",
     "short_name": "PWA",
     "theme_color": "#52ccba",
-    "start_url": "/index.html",
+    "start_url": "/pwa-example/src/index.html",
     "permissions": {
         "desktop-notification": {}
     }
