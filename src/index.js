@@ -19,7 +19,7 @@ if ('serviceWorker' in navigator && 'PushManager' in window) {
                 if (subscription) {
                     return subscription;
                 }
-                const response = await fetch('http://localhost:3000/api/pwa/vapidPublicKey')
+                const response = await fetch('https://localhost:3000/api/pwa/vapidPublicKey')
                 const vapidPublicKey = await response.text();
                 // 开启该客户端的消息推送订阅功能
                 return subscribeUserToPush(registration, vapidPublicKey);
@@ -49,8 +49,7 @@ function subscribeUserToPush(registration, publicKey) {
 }
 
 function sendSubscriptionToServer(subscription) {
-    fetch('http://localhost:3000/api/pwa/send', {
-        // url: 'http://localhost:3000/api/pwa/send',
+    fetch('https://localhost:3000/api/pwa/send', {
         method: 'post',
         headers: {
             'Content-Type': 'application/json'
@@ -86,7 +85,7 @@ noticeBtn.onclick = function() {
 }
 
 serverPush.onclick = function() {
-    fetch('http://localhost:3000/api/pwa/push', {
+    fetch('https://localhost:3000/api/pwa/push', {
         method: 'post',
         body: '',
         headers: {
