@@ -1,41 +1,65 @@
 let deferredPrompt;
 const addBtn = document.querySelector('.add-button');
+const serverPush = document.querySelector('.server-push');
 const notifications = document.getElementById('notifications');
 const noticeBtn = document.querySelector('.notice-button');
 
 addBtn.style.display = 'none';
+let subscription;
 
 if ('serviceWorker' in navigator && 'PushManager' in window) {
-    var publicKey = 'BOEQSjdhorIf8M0XFNlwohK3sTzO9iJwvbYU-fuXRF0tvRpPPMGO6d_gJC_pUQwBT7wD8rKutpNTFHOHN3VqJ0A';
     // 注册 sw
-    navigator.serviceWorker
-        .register('./sw.js')
-        .then((registration) => {
-            notifications.innerHTML = 'Service Worker 注册成功'
-            console.log('Service Worker Registered'); 
-            // 开启该客户端的消息推送订阅功能
-            return subscribeUserToPush(registration, publicKey);
-        }).then(subscription => {
-            const body = { subscription }
-            body.uniqueid = Date.now()
-            console.log(`uniqueid: ${body.uniqueid}`)
-            // 将生成的客户端订阅信息存储在自己的服务器上
-            // return sendSubscriptionToServer(JSON.stringify(body));
-        });
+    navigator.serviceWorker.register('./sw.js').then(() => {
+        notifications.innerHTML = 'Service Worker 注册成功'
+        console.log('Service Worker Registered'); 
+    })
+    navigator.serviceWorker.ready.then((registration) => {
+        return registration.pushManager.getSubscription()
+            .then(async (subscription) => {
+                if (subscription) {
+                    return subscription;
+                }
+                const response = await fetch('http://localhost:3000/api/pwa/vapidPublicKey')
+                const vapidPublicKey = await response.text();
+                // 开启该客户端的消息推送订阅功能
+                return subscribeUserToPush(registration, vapidPublicKey);
+            })
+    }).then(subscription => {
+        // 将生成的客户端订阅信息存储在自己的服务器上
+        console.log('subscription: ', subscription)
+        return sendSubscriptionToServer(subscription);
+    });
 } else {
     notifications.innerHTML = '浏览器不支持 service worker 功能'
-    // return;
 }
-
+/**
+ * 客户端的消息推送订阅功能
+ * @param {*} registration 
+ * @param {*} publicKey 
+ */
 function subscribeUserToPush(registration, publicKey) {
     const subscribeOptions = {
         userVisibleOnly: true,
-        // applicationServerKey: window.Uint8Array(publicKey)
-        applicationServerKey: publicKey
+        applicationServerKey: urlBase64ToUint8Array(publicKey)
     }
     return registration.pushManager.subscribe(subscribeOptions).then(pushSubscription => {
         console.log('Received PushSubscription: ', JSON.stringify(pushSubscription));
         return pushSubscription;
+    })
+}
+
+function sendSubscriptionToServer(subscription) {
+    fetch('http://localhost:3000/api/pwa/send', {
+        // url: 'http://localhost:3000/api/pwa/send',
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            subscription,
+            delay: 0,
+            ttl: 10
+        })
     })
 }
 
@@ -59,6 +83,16 @@ noticeBtn.onclick = function() {
             })
         }
     });
+}
+
+serverPush.onclick = function() {
+    fetch('http://localhost:3000/api/pwa/push', {
+        method: 'post',
+        body: '',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
 }
 
 // 安装WEB应用程序之前需要做的操作
@@ -104,3 +138,18 @@ window.addEventListener('online', e => {
         })
     });
 });
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
