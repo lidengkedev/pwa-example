@@ -5,7 +5,6 @@ const notifications = document.getElementById('notifications');
 const noticeBtn = document.querySelector('.notice-button');
 
 addBtn.style.display = 'none';
-let subscription;
 
 if ('serviceWorker' in navigator && 'PushManager' in window) {
     // 注册 sw
@@ -14,21 +13,23 @@ if ('serviceWorker' in navigator && 'PushManager' in window) {
         console.log('Service Worker Registered'); 
     })
     navigator.serviceWorker.ready.then((registration) => {
-        return registration.pushManager.getSubscription()
-            .then(async (subscription) => {
-                if (subscription) {
-                    return subscription;
-                }
-                const response = await fetch('https://localhost:3000/api/pwa/vapidPublicKey')
+        // 检查订阅
+        registration.pushManager.getSubscription().then(async (subscription) => {
+            // 检查是否已经订阅，
+            // 如果已经订阅则将生成的客户端订阅信息存储在自己的服务器上, 
+            // 否则开启该客户端的消息推送订阅功能
+            if (subscription) {
+                // 将生成的客户端订阅信息存储在自己的服务器上
+                console.log('subscription: ', subscription)
+                sendSubscriptionToServer(subscription);
+            } else {
+                const response = await fetch('http://localhost:3000/api/pwa/vapidPublicKey')
                 const vapidPublicKey = await response.text();
                 // 开启该客户端的消息推送订阅功能
-                return subscribeUserToPush(registration, vapidPublicKey);
-            })
-    }).then(subscription => {
-        // 将生成的客户端订阅信息存储在自己的服务器上
-        console.log('subscription: ', subscription)
-        return sendSubscriptionToServer(subscription);
-    });
+                subscribeUserToPush(registration, vapidPublicKey);
+            }
+        })
+    })
 } else {
     notifications.innerHTML = '浏览器不支持 service worker 功能'
 }
@@ -42,14 +43,17 @@ function subscribeUserToPush(registration, publicKey) {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey)
     }
-    return registration.pushManager.subscribe(subscribeOptions).then(pushSubscription => {
-        console.log('Received PushSubscription: ', JSON.stringify(pushSubscription));
-        return pushSubscription;
+    registration.pushManager.subscribe(subscribeOptions).then(subscription => {
+        // 将生成的客户端订阅信息存储在自己的服务器上
+        console.log('subscription: ', subscription)
+        sendSubscriptionToServer(subscription);
+    }).catch(err => {
+        console.error(err)
     })
 }
 
 function sendSubscriptionToServer(subscription) {
-    fetch('https://localhost:3000/api/pwa/send', {
+    fetch('http://localhost:3000/api/pwa/send', {
         method: 'post',
         headers: {
             'Content-Type': 'application/json'
@@ -60,6 +64,16 @@ function sendSubscriptionToServer(subscription) {
             ttl: 10
         })
     })
+    serverPush.onclick = function() {
+        fetch('http://localhost:3000/api/pwa/push', {
+            method: 'post',
+            body: '',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({subscription})
+        })
+    }
 }
 
 // 发送通知
@@ -84,15 +98,7 @@ noticeBtn.onclick = function() {
     });
 }
 
-serverPush.onclick = function() {
-    fetch('https://localhost:3000/api/pwa/push', {
-        method: 'post',
-        body: '',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-}
+
 
 // 安装WEB应用程序之前需要做的操作
 window.addEventListener('beforeinstallprompt', (e) => {
