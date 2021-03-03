@@ -23,7 +23,7 @@ Service worker 遵循以下7个基本步骤：
 1. Service Worker URL 通过 register() 来获取和注册。
 2. 注册成功后 service Worker 在一个非主进程（执行脚本）的进程中运行，有一个独立的运行环境，并且没有访问DOM的能力
 3. 注册成功后就可以在自己的作用域中处理事件了
-4. 在受 service worker 控制的页面中，在页面打开后浏览器会尝试去安装 service worker 。最先发送给 service worker 的事件是 install （安装）事件，在这个事件中可以开始进行填充 indexedDB 和缓存站点资源。这个流程同原生APP或者Firefox OS APP 是一样的，让所有资源可以离线方法问。
+4. 在受 service worker 控制的页面中，在页面打开后浏览器会尝试去安装 service worker 。最先发送给 service worker 的事件是 install （安装）事件，在这个事件中可以开始进行填充 indexedDB 和缓存站点资源。这个流程同原生APP或者Firefox OS APP 是一样的，让所有资源可以离线访问。
 5. 当 oninstall 事件处理程序执行完后，就可以认为 service worker 已经完成了安装
 6. 激活 service worker 。当 service worker 安装完成后，就会触发一个激活事件 activate ，它的用途是用来清理先前版本的 service worker 中使用的资源。
 7. 最后 service worker 就可以控制页面了，但只能是在 register() 注册过的页面才可以控制页面。也就是说，页面起始于有没有 service worker ，且在页面的接下来生命周期内维持这个状态。所以，页面不得不重新加载以让 service worker 获得完全的控制。

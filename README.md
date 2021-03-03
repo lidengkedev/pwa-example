@@ -5,4 +5,10 @@
 
 查看演示：
 
-<video controls width="100%" height="300px" loop src="https://lidengkedev.github.io/pwa-example/video/20210224_102642.mp4">您的浏览器不支持HTML视频功能</video>
+<video controls width="100%" height="300px" loop src="https://lidengkedev.github.io/pwa-example/static/20210224_102642.mp4"><img src="https://lidengkedev.github.io/pwa-example/static/20210224_102642.gif" width="100%" height="300px"></video>
+
+# DOCUMENTS
+
+- [PWA 渐进式 WEB 应用程序介绍](./docs/introduce.md)
+- [Service Worker 介绍](./docs/service-worker.md)
+- [PWA 实战分析](./docs/example.md)
