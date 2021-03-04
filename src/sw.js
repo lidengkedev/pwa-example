@@ -1,6 +1,8 @@
 importScripts('utils/auth.js');
 // self.importScripts('data/index.js');
 
+const CHECK_NAME = 'cache_v1'
+
 // self.addEventListener('install', function(e) {
 //     console.log('[Service Worker] Install');
 //     e.waitUntil(
@@ -28,6 +30,7 @@ importScripts('utils/auth.js');
 
 
 self.addEventListener('install', handleAddEventListenerInstall);        // 安装
+self.addEventListener('activate', handleAddEventListenerActivate);      // 激活
 self.addEventListener('fetch', handleAddEventListenerFetch);            // 请求
 self.addEventListener('push', handleAddEventListenerPush);              // 监听服务器推送的消息
 self.addEventListener('notificationclick', handleNotificationClick);    // 监听推送消息对话框点击事件
@@ -47,16 +50,42 @@ self.onmessage = handleOnMessage;                                       // 消�
  */
 function handleAddEventListenerInstall(e) {
     console.log('[Service Worker] Install', e);
-    e.waitUntil(
-        caches.open('v1').then((cache) => cache.addAll([
+
+    async function something() {
+        const cache = await caches.open(CHECK_NAME)
+        cache.addAll([
             './',
-            './index.html',
             './index.js',
             './css/index.css',
             './favicon.ico',
-            './sw.js'
-        ])),
-    );
+            './manifest.json',
+            './pwa.webmanifest'
+        ])
+        // 跳过等待直接激活
+        // self.skipWaiting() 方法是异步的，返回的是一个 promise 对象
+        await self.skipWaiting();
+    }
+    e.waitUntil(something());
+    
+}
+/**
+ * 激活
+ * @param {*} e 
+ */
+function handleAddEventListenerActivate(e) {
+    // 默认情况下，激活 service worker 后并没有获得 页面的控制权，
+    // 需要刷新一下才能完全控制页面
+    // 激活后立即获得控制权
+    async function something() {
+        const keys = await caches.keys()
+        keys.forEach(key => {
+            if (key !== CHECK_NAME) {
+                caches.delete(key)
+            }
+        })
+        await self.clients.claim()
+    }
+    e.waitUntil(something())
 }
 /**
  * 监听请求事件
