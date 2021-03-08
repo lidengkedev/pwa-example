@@ -1,33 +1,6 @@
-importScripts('utils/auth.js');
-// self.importScripts('data/index.js');
+self.importScripts('utils/auth.js');
 
-const CHECK_NAME = 'cache_v1'
-
-// self.addEventListener('install', function(e) {
-//     console.log('[Service Worker] Install');
-//     e.waitUntil(
-//         caches.open(cacheName).then(function(cache) {
-//         console.log('[Service Worker] Caching all: app shell and content');
-//         return cache.addAll(contentToCache);
-//         })
-//     );
-// });
-
-// self.addEventListener('fetch', function(e) {
-//     e.respondWith(
-//         caches.match(e.request).then(function(r) {
-//             console.log('[Service Worker] Fetching resource: '+e.request.url);
-//             return r || fetch(e.request).then(function(response) {
-//                 return caches.open(cacheName).then(function(cache) {
-//                     console.log('[Service Worker] Caching new resource: '+e.request.url);
-//                     cache.put(e.request, response.clone());
-//                     return response;
-//                 });
-//             });
-//         })
-//     );
-// });
-
+const CACHE_NAME = 'cache_v1'
 
 self.addEventListener('install', handleAddEventListenerInstall);        // 安装
 self.addEventListener('activate', handleAddEventListenerActivate);      // 激活
@@ -48,44 +21,44 @@ self.onmessage = handleOnMessage;                                       // 消�
  * 当安装成功完成之后， service worker 就会激活。
  * IndexedDB 可以在 service worker 内做数据存储。
  */
-function handleAddEventListenerInstall(e) {
+async function handleAddEventListenerInstall(e) {
     console.log('[Service Worker] Install', e);
 
-    async function something() {
-        const cache = await caches.open(CHECK_NAME)
+    // async function something() {
+        const cache = await caches.open(CACHE_NAME)
         cache.addAll([
             './',
             './index.js',
             './css/index.css',
             './favicon.ico',
-            './manifest.json',
             './pwa.webmanifest'
         ])
         // 跳过等待直接激活
         // self.skipWaiting() 方法是异步的，返回的是一个 promise 对象
         await self.skipWaiting();
-    }
-    e.waitUntil(something());
+    // }
+    // e.waitUntil(something());
     
 }
 /**
  * 激活
  * @param {*} e 
  */
-function handleAddEventListenerActivate(e) {
+async function handleAddEventListenerActivate(e) {
+    console.log('Service Worker Activate', e)
     // 默认情况下，激活 service worker 后并没有获得 页面的控制权，
     // 需要刷新一下才能完全控制页面
     // 激活后立即获得控制权
-    async function something() {
+    // async function something() {
         const keys = await caches.keys()
         keys.forEach(key => {
-            if (key !== CHECK_NAME) {
+            if (key !== CACHE_NAME) {
                 caches.delete(key)
             }
         })
         await self.clients.claim()
-    }
-    e.waitUntil(something())
+    // }
+    // e.waitUntil(something())
 }
 /**
  * 监听请求事件
@@ -103,7 +76,7 @@ function handleAddEventListenerFetch(e) {
         caches.match(e.request)
             .then(cacheresponse => {
                 return cacheresponse || fetch(e.request).then(response => {
-                    return caches.open('v1').then(cache => {
+                    return caches.open(CACHE_NAME).then(cache => {
                         cache.put(e.request, response.clone())
                         return response
                     })

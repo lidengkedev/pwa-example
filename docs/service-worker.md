@@ -87,6 +87,16 @@ service worker 存储缓存一般是在 install 的时候进行的，使用 serv
 
 self 是 service worker 中的全局变量，等同于 this 和 window 对象。但是它没有操作 DOM 的能力。
 
+### 安装
+
+- install 事件会在注册完成之后触发。
+- install 事件一般是被用来填充你的浏览器的离线缓存能力。
+- waitUntil() 方法会确保Service Worker 不会在 waitUntil() 里面的代码执行完毕之前安装完成。
+- caches.open() 方法来创建了一个叫做 v1 的新的缓存，将会是我们的站点资源缓存的第一个版本。
+- 接着会调用在创建的缓存示例上的一个方法 addAll()，这个方法的参数是一个由一组相对于 origin 的 URL 组成的数组，这些 URL 就是你想缓存的资源的列表。
+- 当安装成功完成之后， service worker 就会激活。
+- IndexedDB 可以在 service worker 内做数据存储。
+
 ```js
 // sw.js
 self.addEventListener('install', e => {
@@ -115,6 +125,51 @@ self.addEventListener('install', e => {
     )
 })
 ```
+或者采用 ES7 语法
+```js
+const CACHE_NAME = 'cache_v1'
+self.addEventListener('install', async e => {
+    const cache = await caches.open(CACHE_NAME)
+    await cache.addAll([
+        '/sw-test/',
+        '/sw-test/app.js'
+    ])
+    // 跳过等待直接激活
+    await self.skipWaiting()
+})
+```
+
+### 激活
+
+```js
+const CACHE_NAME = 'cache_v1'
+self.addEventListener('activate', e => {
+    e.waitUntil(caches.keys().then(keys => {
+        keys.forEach(key => {
+            if (key !== CACHE_NAME) {
+                caches.delete(key)
+            }
+        })
+    }))
+})
+```
+或者采用 ES7
+
+默认情况下，激活 service worker 后并没有获得 页面的控制权，需要刷新一下才能完全控制页面
+```js
+const CACHE_NAME = 'cache_v1'
+self.addEventListener('activate', async e => {
+    const keys = await caches.keys()
+    keys.forEach(key => {
+        if (key !== CACHE_NAME) {
+            caches.delete(key)
+        }
+    })
+    // 激活后立即获得控制权
+    await self.clients.claim()
+})
+```
+
 ## 自定义请求的响应
 
 在 service worker 中使用 fetch 来代替 XMLHttpRequest 方法，用于处理请求的响应。
